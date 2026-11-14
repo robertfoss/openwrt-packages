@@ -1455,7 +1455,13 @@ function history_compute(range, points, end, since) {
 		if (!length(m) && !length(a.r4) && !hn) continue;
 		out[k] = { meta: state.neighbors[k], metric: m, rtt: r, roles4: a.r4, roles6: a.r6 };
 		if (q.p99) {
-			let pm = hist_percentile(a.hm, 0.99, 1, INF), pr = hist_percentile(a.hr, 0.99, 1, INF);
+			let mlo = INF, mhi = 0, rlo = INF, rhi = 0;
+			for (let b = 0; b < points; b++) {
+				if (a.n[b]) { mlo = min(mlo, a.mmin[b]); mhi = max(mhi, a.mmax[b]); }
+				if (a.rn[b]) { rlo = min(rlo, a.rmin[b]); rhi = max(rhi, a.rmax[b]); }
+			}
+			let pm = (mlo <= mhi) ? hist_percentile(a.hm, 0.99, mlo, mhi) : null;
+			let pr = (rlo <= rhi) ? hist_percentile(a.hr, 0.99, rlo, rhi) : null;
 			out[k].p99 = { metric: (pm != null) ? int(pm + 0.5) : null, rtt: (pr != null) ? int(pr + 0.5) / 10.0 : null };
 		}
 	}
